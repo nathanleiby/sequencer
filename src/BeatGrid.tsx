@@ -30,6 +30,7 @@ let currentBeat = 0;
 // TODO: debugging
 Tone.Transport.bpm.value = 60;
 
+type BeatGroup = boolean[][];
 export default function BeatGrid2D(props: BeatGrid2DProps) {
   const theme = useMantineTheme();
   const beatColors = theme.colors.orange.slice(3, 7);
@@ -43,7 +44,8 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
 
   // const loopDuration = "1m"; // 4 quarter notes?
 
-  const [beatGroup, setBeatGroup] = useState<boolean[][]>(INITIAL_BEAT_GROUP);
+  // const [beatGroup, setBeatGroup] = useRef<any[]>>([]);
+  const [beatGroup, setBeatGroup] = useState<BeatGroup>(INITIAL_BEAT_GROUP);
 
   useEffect(() => {
     if (!playing) {
@@ -52,33 +54,19 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     }
 
     const scheduled = Tone.Transport.scheduleRepeat((time) => {
-      // increment the counter
       currentBeat = (currentBeat + 1) % beatsPerLoop;
-      // console.log("repeat() .. currentBeat=", currentBeat);
-      // console.log({ beatGroup });
       beatGroup.forEach((bg, bgIdx) => {
-        // as the index increments we are moving *down* the rows
-        // One note per row and one synth per note means that each row corresponds to a synth
         const synth = synths[bgIdx];
-        // beat is used to keep track of what subdivision we are on
-        // there are eight *beats* or subdivisions for this sequencer
         const isActive = bg[currentBeat];
         if (isActive) {
-          console.log("-> active! bgIdx=", bgIdx);
-          // triggerAttackRelease() plays a specific pitch for a specific duration
-          // documentation can be found here:
-          // https://tonejs.github.io/docs/14.7.77/Synth#triggerAttackRelease
-
           synth.triggerAttackRelease(notes[bgIdx], "16n", time);
         }
       });
     }, "16n");
-    console.log("created:", scheduled);
 
     // cleanup callback
     // https://overreacted.io/a-complete-guide-to-useeffect/#so-what-about-cleanup
     return () => {
-      console.log("cleanup callback, cancelling:", scheduled);
       Tone.Transport.clear(scheduled);
     };
   }, [beatGroup, playing]);
@@ -91,17 +79,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     }, "32n");
   }, []);
 
-  // // initialize main Transport's loop
-  // useEffect(() => {
-  //   Tone.Transport.loop = true;
-  //   Tone.Transport.loopStart = "0";
-  //   Tone.Transport.loopEnd = loopDuration;
-  //   Tone.Transport.context.debug = true;
-  //   Tone.Transport.debug = true;
-  // }, []);
-
   const beatWidth = 50;
-  // TODO: solve left offset and veritical offset via CSS positioning of grid on the page
   const xOffset = 0;
   const ySpacing = 1;
   const yOffset = 0;
