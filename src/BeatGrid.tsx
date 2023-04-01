@@ -1,4 +1,4 @@
-import { Button, Group, Text, useMantineTheme } from "@mantine/core";
+import { Button, Group, Space, Text, useMantineTheme } from "@mantine/core";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { Layer, Line, Rect, Stage } from "react-konva";
@@ -93,7 +93,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   const xOffset = 0;
   const ySpacing = 1;
   const yOffset = 0;
-  const yTotal = beatsPerLoop * beatWidth;
+  const yTotal = voices.length * beatWidth;
 
   const linePos = 0;
 
@@ -115,6 +115,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
         <Text>Position: {transportPos.toString()}</Text>
         <Text>Tone Context State: {Tone.context.state}</Text>
       </Group>
+      <Space h="xl" />
       <Stage width={800} height={yTotal + 10}>
         <Layer>
           {/* background */}
@@ -199,6 +200,11 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
           />
         </Layer>
       </Stage>
+      <Space h="xl" />
+      <Text size="md">
+        If it gets out of sync (which it will when you click and add notes while
+        it's running), just stop and start again.
+      </Text>
     </>
   );
 }
