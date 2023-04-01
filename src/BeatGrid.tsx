@@ -103,6 +103,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
         <Button
           onClick={async () => {
             if (!playing) {
+              await Tone.start(); // start audio context
               await Tone.Transport.start();
             } else {
               await Tone.Transport.stop();
