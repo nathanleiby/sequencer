@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/sequencer/static/css/main.ca57846c.css",
+    "main.js": "/sequencer/static/js/main.dead388e.js",
+    "static/js/787.e6eaf968.chunk.js": "/sequencer/static/js/787.e6eaf968.chunk.js",
+    "index.html": "/sequencer/index.html",
+    "main.ca57846c.css.map": "/sequencer/static/css/main.ca57846c.css.map",
+    "main.dead388e.js.map": "/sequencer/static/js/main.dead388e.js.map",
+    "787.e6eaf968.chunk.js.map": "/sequencer/static/js/787.e6eaf968.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ca57846c.css",
+    "static/js/main.dead388e.js"
+  ]
+}
