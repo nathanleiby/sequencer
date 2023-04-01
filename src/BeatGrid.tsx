@@ -30,7 +30,11 @@ let currentBeat = 0;
 // TODO: debugging
 Tone.Transport.bpm.value = 60;
 
-type BeatGroup = boolean[][];
+// maybe we want to loop
+Tone.Transport.loop = true;
+Tone.Transport.loopEnd = "1m";
+
+type Voices = boolean[][];
 export default function BeatGrid2D(props: BeatGrid2DProps) {
   const theme = useMantineTheme();
   const beatColors = theme.colors.orange.slice(3, 7);
@@ -39,13 +43,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   const [transportPos, setTransportPos] = useState<Tone.Unit.Time>(0);
   const [currentBeatUI, setCurrentBeatUI] = useState(-1);
 
-  // const [isSamplerLoaded, setIsSamplerLoaded] = useState(false);
-  // const sampler = useRef(null);
-
-  // const loopDuration = "1m"; // 4 quarter notes?
-
-  // const [beatGroup, setBeatGroup] = useRef<any[]>>([]);
-  const [beatGroup, setBeatGroup] = useState<BeatGroup>(INITIAL_BEAT_GROUP);
+  const [voices, setVoices] = useState<Voices>(INITIAL_BEAT_GROUP);
 
   useEffect(() => {
     if (!playing) {
@@ -53,9 +51,21 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
       return;
     }
 
+    // TODO: schedule multiple notes?
+    // TODO: align notes to global transport?
+    // https://stackoverflow.com/questions/70208515/how-do-i-play-multiple-notes-one-after-another-in-tone-js
+    // const notes = [
+    //     { pitch: "C4", timing: 0 },
+    //     { pitch: "D4", timing: 1 },
+    //     { pitch: "E4", timing: 1 },
+    //     { pitch: "F4", timing: 1 },
+    //     { pitch: "G4", timing: 1 }
+    // ];
     const scheduled = Tone.Transport.scheduleRepeat((time) => {
+      console.log({ time, transportPos: Tone.Transport.position.toString() });
+      // Schedules notes for all voices, for a specific beat
       currentBeat = (currentBeat + 1) % beatsPerLoop;
-      beatGroup.forEach((bg, bgIdx) => {
+      voices.forEach((bg, bgIdx) => {
         const synth = synths[bgIdx];
         const isActive = bg[currentBeat];
         if (isActive) {
@@ -69,7 +79,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     return () => {
       Tone.Transport.clear(scheduled);
     };
-  }, [beatGroup, playing]);
+  }, [voices, playing]);
 
   useEffect(() => {
     // also update display of transport pos
@@ -130,7 +140,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
             />
           ))}
 
-          {_.range(beatGroup.length + 1).map((n) => (
+          {_.range(voices.length + 1).map((n) => (
             <Line
               key={n}
               x={xOffset * beatWidth}
@@ -150,7 +160,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
             />
           ))}
 
-          {beatGroup.map((beats, bgIdx) => {
+          {voices.map((beats, bgIdx) => {
             return beats.map((beat, bIdx) => {
               return (
                 <>
@@ -165,10 +175,9 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
                     }
                     stroke={bIdx === currentBeatUI ? "green" : "black"}
                     onClick={() => {
-                      const newBeatGroup = _.cloneDeep(beatGroup);
-                      newBeatGroup[bgIdx][bIdx] = !newBeatGroup[bgIdx][bIdx];
-                      console.log({ beatGroup, newBeatGroup });
-                      setBeatGroup(newBeatGroup);
+                      const newVoices = _.cloneDeep(voices);
+                      newVoices[bgIdx][bIdx] = !newVoices[bgIdx][bIdx];
+                      setVoices(newVoices);
                     }}
                   />
                 </>
