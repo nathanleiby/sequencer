@@ -34,7 +34,23 @@ Tone.Transport.bpm.value = 60;
 Tone.Transport.loop = true;
 Tone.Transport.loopEnd = "1m";
 
+let voices = INITIAL_BEAT_GROUP;
+// TODO: try via ref, sometime
+Tone.Transport.scheduleRepeat((time) => {
+  console.log({ time, transportPos: Tone.Transport.position.toString() });
+  // Schedules notes for all voices, for a specific beat
+  currentBeat = (currentBeat + 1) % beatsPerLoop;
+  voices.forEach((bg, bgIdx) => {
+    const synth = synths[bgIdx];
+    const isActive = bg[currentBeat];
+    if (isActive) {
+      synth.triggerAttackRelease(notes[bgIdx], "16n", time);
+    }
+  });
+}, "16n");
+
 type Voices = boolean[][];
+
 export default function BeatGrid2D(props: BeatGrid2DProps) {
   const theme = useMantineTheme();
   const beatColors = theme.colors.orange.slice(3, 7);
@@ -42,44 +58,19 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   const [playing, setPlaying] = useState(false);
   const [transportPos, setTransportPos] = useState<Tone.Unit.Time>(0);
   const [currentBeatUI, setCurrentBeatUI] = useState(-1);
+  const [refreshPlz, setRefreshPlz] = useState(false);
 
-  const [voices, setVoices] = useState<Voices>(INITIAL_BEAT_GROUP);
+  const setVoices = (v: Voices) => {
+    voices = v;
+    setRefreshPlz(!refreshPlz);
+  };
 
   useEffect(() => {
     if (!playing) {
       currentBeat = -1;
       return;
     }
-
-    // TODO: schedule multiple notes?
-    // TODO: align notes to global transport?
-    // https://stackoverflow.com/questions/70208515/how-do-i-play-multiple-notes-one-after-another-in-tone-js
-    // const notes = [
-    //     { pitch: "C4", timing: 0 },
-    //     { pitch: "D4", timing: 1 },
-    //     { pitch: "E4", timing: 1 },
-    //     { pitch: "F4", timing: 1 },
-    //     { pitch: "G4", timing: 1 }
-    // ];
-    const scheduled = Tone.Transport.scheduleRepeat((time) => {
-      console.log({ time, transportPos: Tone.Transport.position.toString() });
-      // Schedules notes for all voices, for a specific beat
-      currentBeat = (currentBeat + 1) % beatsPerLoop;
-      voices.forEach((bg, bgIdx) => {
-        const synth = synths[bgIdx];
-        const isActive = bg[currentBeat];
-        if (isActive) {
-          synth.triggerAttackRelease(notes[bgIdx], "16n", time);
-        }
-      });
-    }, "16n");
-
-    // cleanup callback
-    // https://overreacted.io/a-complete-guide-to-useeffect/#so-what-about-cleanup
-    return () => {
-      Tone.Transport.clear(scheduled);
-    };
-  }, [voices, playing]);
+  }, [playing]);
 
   useEffect(() => {
     // also update display of transport pos
@@ -99,6 +90,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
 
   return (
     <>
+      {/* <Player currentBeat={currentBeat} voices={voices}  /> */}
       <Group>
         <Button
           onClick={async () => {
@@ -201,11 +193,6 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
           />
         </Layer>
       </Stage>
-      <Space h="xl" />
-      <Text size="md">
-        If it gets out of sync (which it will when you click and add notes while
-        it's running), just stop and start again.
-      </Text>
     </>
   );
 }
