@@ -99,6 +99,8 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
               await Tone.Transport.start();
             } else {
               await Tone.Transport.stop();
+              currentBeat = -1;
+              setCurrentBeatUI(currentBeat);
             }
             setPlaying(!playing);
           }}
