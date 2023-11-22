@@ -11,7 +11,7 @@
   - [ ] allow choosing a loop to practice
 - [ ] Building loops
   - [ ] samba rhythm
-  - [ ] cup stacker
+  - [x] cup stacker
   - [ ] allow a user to input any loop and save it for training
 - [ ] support longer patterns (multiple rows? scrolling page?)
 - [ ] Across session training tools

@@ -13,6 +13,7 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { Layer, Line, Rect, Stage } from "react-konva";
 import * as Tone from "tone";
+import { Beats } from "./beats";
 
 interface BeatGrid2DProps {}
 
@@ -23,6 +24,13 @@ const NUM_ROWS = 4;
 const INITIAL_BEAT_GROUP = _.map(Array(NUM_ROWS), (r) =>
   Array(beatsPerLoop).fill(false)
 );
+
+INITIAL_BEAT_GROUP[0] = Beats.CupStacker.voices.open_hihat;
+INITIAL_BEAT_GROUP[1] = Beats.CupStacker.voices.hihat;
+INITIAL_BEAT_GROUP[2] = Beats.CupStacker.voices.snare;
+INITIAL_BEAT_GROUP[3] = Beats.CupStacker.voices.kick;
+
+const INITIAL_BPM = Beats.CupStacker.bpm;
 
 // setup synths
 const synths: Tone.Synth[] = [
@@ -38,7 +46,7 @@ const notes: string[] = ["A4", "C5", "E5", "F#5"];
 let currentBeat = 0;
 
 // TODO: debugging
-Tone.Transport.bpm.value = 60;
+Tone.Transport.bpm.value = INITIAL_BPM;
 
 // maybe we want to loop
 Tone.Transport.loop = true;
@@ -77,7 +85,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     _.map(new Array(voices.length), () => [])
   );
 
-  const [bpm, setBpm] = useState(60);
+  const [bpm, setBpm] = useState(INITIAL_BPM);
   const [playing, setPlaying] = useState(false);
   const [transportPos, setTransportPos] = useState<Tone.Unit.Time>(0);
   const [currentBeatUI, setCurrentBeatUI] = useState(-1);
@@ -166,7 +174,12 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
 
         <Stack>
           <Input.Label>BPM</Input.Label>
-          <Slider onChange={(value) => setBpm(value)} min={60} max={120} />
+          <Slider
+            value={bpm}
+            onChange={(value) => setBpm(value)}
+            min={60}
+            max={120}
+          />
         </Stack>
       </Group>
 
