@@ -32,16 +32,51 @@ INITIAL_BEAT_GROUP[3] = Beats.CupStacker.voices.kick;
 
 const INITIAL_BPM = Beats.CupStacker.bpm;
 
-// setup synths
-const synths: Tone.Synth[] = [
-  new Tone.Synth(),
-  new Tone.Synth(),
-  new Tone.Synth(),
-  new Tone.Synth(),
-];
-synths.forEach((s) => s.toDestination());
+const kickDrum = new Tone.MembraneSynth({
+  volume: 1,
+}).toDestination();
 
-const notes: string[] = ["A4", "C5", "E5", "F#5"];
+const lowPass = new Tone.Filter({
+  frequency: 8000,
+}).toDestination();
+
+const snareDrum = new Tone.NoiseSynth({
+  volume: 5,
+  noise: {
+    type: "white",
+    playbackRate: 3,
+  },
+  envelope: {
+    attack: 0.001,
+    decay: 0.2,
+    sustain: 0.15,
+    release: 0.03,
+  },
+}).connect(lowPass);
+
+// filtering the hi-hats a bit
+// to make them sound nicer
+const lowPass2 = new Tone.Filter({
+  frequency: 14000,
+}).toDestination();
+
+// we can make our own hi hats with
+// the noise synth and a sharp filter envelope
+const openHiHat = new Tone.NoiseSynth({
+  volume: 10,
+  envelope: {
+    attack: 0.01,
+    decay: 0.3,
+  },
+}).connect(lowPass2);
+
+const closedHiHat = new Tone.NoiseSynth({
+  volume: 10,
+  envelope: {
+    attack: 0.01,
+    decay: 0.15,
+  },
+}).connect(lowPass);
 
 let currentBeat = 0;
 
@@ -59,10 +94,24 @@ Tone.Transport.scheduleRepeat((time) => {
   // Schedules notes for all voices, for a specific beat
   currentBeat = (currentBeat + 1) % beatsPerLoop;
   voices.forEach((bg, bgIdx) => {
-    const synth = synths[bgIdx];
     const isActive = bg[currentBeat];
     if (isActive) {
-      synth.triggerAttackRelease(notes[bgIdx], "16n", time);
+      if (bgIdx === 3) {
+        // kick drum
+        kickDrum.triggerAttackRelease("C2", "16n", time);
+      }
+      if (bgIdx === 2) {
+        // snare drum
+        snareDrum.triggerAttackRelease("16n", time);
+      }
+      if (bgIdx === 1) {
+        // hihat
+        closedHiHat.triggerAttackRelease("16n", time);
+      }
+      if (bgIdx === 0) {
+        // hihat
+        openHiHat.triggerAttackRelease("16n", time);
+      }
     }
   });
 }, "16n");
