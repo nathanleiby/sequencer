@@ -6,11 +6,14 @@
   - [x] allow N keyboard inputs, one capturing presses for each row
   - [ ] do equivalent for midi input
 - [ ] Runtime training tools
-  - [ ] allow speeding up or slowing down the sample
+  - [x] allow speeding up or slowing down the sample
   - [ ] play a metronome
   - [ ] allow choosing a loop to practice
 - [ ] Building loops
-  - allow a user to input any loop and save it for training
+  - [ ] samba rhythm
+  - [ ] cup stacker
+  - [ ] allow a user to input any loop and save it for training
+- [ ] support longer patterns (multiple rows? scrolling page?)
 - [ ] Across session training tools
   - [ ] save training history
     - [ ] how fast, how accurate
