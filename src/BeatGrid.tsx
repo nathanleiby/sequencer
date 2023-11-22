@@ -52,11 +52,21 @@ Tone.Transport.scheduleRepeat((time) => {
 
 type Voices = boolean[][];
 
+const transportPosToSixteenthNote = (transportPos: Tone.Unit.Time) => {
+  const [, quarterNote, sixthteenthNote] = transportPos
+    .toString()
+    .split(":")
+    .map(Number);
+  return quarterNote * 4 + sixthteenthNote;
+};
+
 export default function BeatGrid2D(props: BeatGrid2DProps) {
   const theme = useMantineTheme();
   const beatColors = theme.colors.orange.slice(3, 7);
 
-  const [userNotes, setUserNotes] = useState<Tone.Unit.Time[]>([]);
+  const [userNotes, setUserNotes] = useState<Tone.Unit.Time[][]>(
+    _.map(new Array(voices.length), () => [])
+  );
 
   const [playing, setPlaying] = useState(false);
   const [transportPos, setTransportPos] = useState<Tone.Unit.Time>(0);
@@ -67,18 +77,27 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     [
       "a",
       () => {
-        // limit to 10 user notes
-        if (userNotes.length >= 10) {
-          userNotes.pop();
-        }
-        setUserNotes([Tone.Transport.position, ...userNotes]);
-
-        // console.log({ transportPos: Tone.Transport.position.toString() });
+        handleUserNote(0);
       },
     ],
-    ["s", () => console.log("Trigger search")],
-    ["d", () => console.log("Rick roll")],
-    ["f", () => console.log("Rick roll")],
+    [
+      "s",
+      () => {
+        handleUserNote(1);
+      },
+    ],
+    [
+      "d",
+      () => {
+        handleUserNote(2);
+      },
+    ],
+    [
+      "f",
+      () => {
+        handleUserNote(3);
+      },
+    ],
   ]);
 
   const setVoices = (v: Voices) => {
@@ -98,7 +117,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     Tone.Transport.scheduleRepeat((time) => {
       setTransportPos(Tone.Transport.position);
       setCurrentBeatUI(currentBeat);
-    }, "32n");
+    }, "256n");
   }, []);
 
   const beatWidth = 50;
@@ -107,7 +126,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   const yOffset = 0;
   const yTotal = voices.length * beatWidth;
 
-  const linePos = 0;
+  const linePos = transportPosToSixteenthNote(transportPos);
 
   return (
     <>
@@ -199,25 +218,24 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
           })}
 
           {/* User played notes */}
-          {userNotes.map((note, noteIdx) => {
-            const bgIdx = 0;
-            // https://github.com/Tonejs/Tone.js/wiki/Time
-            const [, quarterNote, sixthteenthNote] = note
-              .toString()
-              .split(":")
-              .map(Number);
-            return (
-              <Rect
-                key={`${noteIdx}`}
-                x={(xOffset + quarterNote * 4 + sixthteenthNote) * beatWidth}
-                y={(yOffset + bgIdx * ySpacing) * beatWidth}
-                width={noteIdx === 0 ? 4 : 2}
-                height={beatWidth}
-                fill={noteIdx === 0 ? "lime" : "blue"}
-                stroke={undefined}
-              />
-            );
+          {userNotes.map((userNoteVoice, bgIdx) => {
+            return userNoteVoice.map((note, noteIdx) => {
+              // https://github.com/Tonejs/Tone.js/wiki/Time
+              const sixteenths = transportPosToSixteenthNote(note);
+              return (
+                <Rect
+                  key={`${bgIdx}-${noteIdx}`}
+                  x={(xOffset + sixteenths) * beatWidth}
+                  y={(yOffset + bgIdx * ySpacing) * beatWidth}
+                  width={noteIdx === 0 ? 4 : 2}
+                  height={beatWidth}
+                  fill={noteIdx === 0 ? "lime" : "blue"}
+                  stroke={undefined}
+                />
+              );
+            });
           })}
+
           {/* position */}
           <Line
             x={xOffset * beatWidth}
@@ -234,4 +252,16 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
       </Stage>
     </>
   );
+
+  function handleUserNote(voiceIdx: number) {
+    const newUserNotes = _.cloneDeep(userNotes);
+    // limit to 10 user notes
+    if (userNotes[voiceIdx].length >= 10) {
+      userNotes[voiceIdx].pop();
+    }
+    console.log({ transportPos: Tone.Transport.position.toString() });
+    newUserNotes[voiceIdx] = [Tone.Transport.position, ...userNotes[voiceIdx]];
+    console.log({ newUserNotes });
+    setUserNotes(newUserNotes);
+  }
 }

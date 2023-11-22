@@ -3,7 +3,7 @@
 - [ ] geting user input and measuring its correctness
   - [x] capture input time of keyboard press
   - [x] show shape to indicate when press occurred
-  - [ ] allow N keyboard inputs, one capturing presses for each row
+  - [x] allow N keyboard inputs, one capturing presses for each row
   - [ ] do equivalent for midi input
 - [ ] Runtime training tools
   - [ ] allow speeding up or slowing down the sample
