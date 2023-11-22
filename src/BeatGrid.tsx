@@ -2,6 +2,7 @@ import {
   Button,
   Group,
   Input,
+  Select,
   Slider,
   Space,
   Stack,
@@ -10,7 +11,7 @@ import {
 } from "@mantine/core";
 import { useHotkeys } from "@mantine/hooks";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Layer, Line, Rect, Stage } from "react-konva";
 import * as Tone from "tone";
 import { Beats } from "./beats";
@@ -30,12 +31,7 @@ const INITIAL_BEAT_GROUP = _.map(Array(NUM_ROWS), (r) =>
   Array(beatsPerLoop).fill(false)
 );
 
-INITIAL_BEAT_GROUP[0] = Beats.CupStacker.voices.open_hihat;
-INITIAL_BEAT_GROUP[1] = Beats.CupStacker.voices.hihat;
-INITIAL_BEAT_GROUP[2] = Beats.CupStacker.voices.snare;
-INITIAL_BEAT_GROUP[3] = Beats.CupStacker.voices.kick;
-
-const INITIAL_BPM = Beats.CupStacker.bpm;
+const INITIAL_BPM = 100;
 
 const kickDrumSampler = new Tone.Sampler({
   A1: kickMp3,
@@ -53,7 +49,7 @@ const closedHiHatSampler = new Tone.Sampler({
   A1: closedHiHatMp3,
 }).toDestination();
 
-let currentBeat = 0;
+let currentBeatNum = 0;
 
 // TODO: debugging
 Tone.Transport.bpm.value = INITIAL_BPM;
@@ -67,9 +63,9 @@ let voices = INITIAL_BEAT_GROUP;
 Tone.Transport.scheduleRepeat((time) => {
   console.log({ time, transportPos: Tone.Transport.position.toString() });
   // Schedules notes for all voices, for a specific beat
-  currentBeat = (currentBeat + 1) % beatsPerLoop;
+  currentBeatNum = (currentBeatNum + 1) % beatsPerLoop;
   voices.forEach((bg, bgIdx) => {
-    const isActive = bg[currentBeat];
+    const isActive = bg[currentBeatNum];
     if (isActive) {
       if (bgIdx === 3) {
         kickDrumSampler.triggerAttackRelease("A1", "16n", time);
@@ -109,7 +105,10 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   const [playing, setPlaying] = useState(false);
   const [transportPos, setTransportPos] = useState<Tone.Unit.Time>(0);
   const [currentBeatUI, setCurrentBeatUI] = useState(-1);
-  const [refreshPlz, setRefreshPlz] = useState(false);
+  const [, setRefreshPlz] = useState(false);
+
+  const [currentBeatName, setCurrentBeatName] =
+    useState<keyof typeof Beats>("Saturday");
 
   useHotkeys([
     [
@@ -138,10 +137,19 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     ],
   ]);
 
-  const setVoices = (v: Voices) => {
+  const setVoices = useCallback((v: Voices) => {
     voices = v;
-    setRefreshPlz(!refreshPlz);
-  };
+    setRefreshPlz((r) => !r);
+  }, []);
+
+  useEffect(() => {
+    setVoices([
+      Beats[currentBeatName].voices.open_hihat.map((v) => Boolean(v)),
+      Beats[currentBeatName].voices.hihat.map((v) => Boolean(v)),
+      Beats[currentBeatName].voices.snare.map((v) => Boolean(v)),
+      Beats[currentBeatName].voices.kick.map((v) => Boolean(v)),
+    ]);
+  }, [currentBeatName, setVoices]);
 
   useEffect(() => {
     Tone.Transport.bpm.value = bpm;
@@ -149,7 +157,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
 
   useEffect(() => {
     if (!playing) {
-      currentBeat = -1;
+      currentBeatNum = -1;
       return;
     }
   }, [playing]);
@@ -158,7 +166,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     // also update display of transport pos
     Tone.Transport.scheduleRepeat((time) => {
       setTransportPos(Tone.Transport.position);
-      setCurrentBeatUI(currentBeat);
+      setCurrentBeatUI(currentBeatNum);
     }, "256n");
   }, []);
 
@@ -181,8 +189,8 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
               await Tone.Transport.start();
             } else {
               await Tone.Transport.stop();
-              currentBeat = -1;
-              setCurrentBeatUI(currentBeat);
+              currentBeatNum = -1;
+              setCurrentBeatUI(currentBeatNum);
             }
             setPlaying(!playing);
           }}
@@ -191,6 +199,14 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
         </Button>
         <Text>Position: {transportPos.toString()}</Text>
         <Text>Tone Context State: {Tone.context.state}</Text>
+        <Select
+          data={Object.keys(Beats)}
+          onChange={(v) =>
+            v &&
+            (v === "Saturday" || v === "CupStacker") &&
+            setCurrentBeatName(v)
+          }
+        />
 
         <Stack>
           <Input.Label>BPM</Input.Label>

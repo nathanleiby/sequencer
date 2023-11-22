@@ -5,16 +5,19 @@
   - [x] show shape to indicate when press occurred
   - [x] allow N keyboard inputs, one capturing presses for each row
   - [ ] do equivalent for midi input
-- [ ] Runtime training tools
+- [ ] During training tools (while playing)
   - [x] allow speeding up or slowing down the sample
+  - [ ] pause (not just stop)
   - [ ] play a metronome
-  - [ ] allow choosing a loop to practice
+  - [x] allow choosing a loop to practice
 - [ ] Building loops
   - [ ] samba rhythm
   - [x] cup stacker
+  - [...] saturday
+    - [ ] add new drum sounds (ride, ride bell)
   - [ ] allow a user to input any loop and save it for training
 - [ ] support longer patterns (multiple rows? scrolling page?)
-- [ ] Across session training tools
+- [ ] Across session training tools (reflection, growth, goals)
   - [ ] save training history
     - [ ] how fast, how accurate
 - [...] support for Drumkit sounds
@@ -27,6 +30,7 @@
     - [ ] ride
     - [x] open hihat
   - p 2
+    - [ ] stick
     - [ ] tom 1,2,3
     - [ ] ride (bell)
 
