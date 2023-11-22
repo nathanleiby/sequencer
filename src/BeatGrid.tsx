@@ -1,4 +1,13 @@
-import { Button, Group, Space, Text, useMantineTheme } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Input,
+  Slider,
+  Space,
+  Stack,
+  Text,
+  useMantineTheme,
+} from "@mantine/core";
 import { useHotkeys } from "@mantine/hooks";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -68,6 +77,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
     _.map(new Array(voices.length), () => [])
   );
 
+  const [bpm, setBpm] = useState(60);
   const [playing, setPlaying] = useState(false);
   const [transportPos, setTransportPos] = useState<Tone.Unit.Time>(0);
   const [currentBeatUI, setCurrentBeatUI] = useState(-1);
@@ -106,6 +116,10 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   };
 
   useEffect(() => {
+    Tone.Transport.bpm.value = bpm;
+  }, [bpm]);
+
+  useEffect(() => {
     if (!playing) {
       currentBeat = -1;
       return;
@@ -131,7 +145,7 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   return (
     <>
       {/* <Player currentBeat={currentBeat} voices={voices}  /> */}
-      <Group>
+      <Group grow>
         <Button
           onClick={async () => {
             if (!playing) {
@@ -149,7 +163,13 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
         </Button>
         <Text>Position: {transportPos.toString()}</Text>
         <Text>Tone Context State: {Tone.context.state}</Text>
+
+        <Stack>
+          <Input.Label>BPM</Input.Label>
+          <Slider onChange={(value) => setBpm(value)} min={60} max={120} />
+        </Stack>
       </Group>
+
       <Space h="xl" />
       <Stage width={800} height={yTotal + 10}>
         <Layer>
