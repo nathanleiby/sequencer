@@ -15,6 +15,11 @@ import { Layer, Line, Rect, Stage } from "react-konva";
 import * as Tone from "tone";
 import { Beats } from "./beats";
 
+import closedHiHatMp3 from "./sounds/closed-hihat.mp3";
+import kickMp3 from "./sounds/kick.mp3";
+import openHiHatMp3 from "./sounds/open-hihat.mp3";
+import snareMp3 from "./sounds/snare.mp3";
+
 interface BeatGrid2DProps {}
 
 const beatsPerLoop = 16;
@@ -32,51 +37,21 @@ INITIAL_BEAT_GROUP[3] = Beats.CupStacker.voices.kick;
 
 const INITIAL_BPM = Beats.CupStacker.bpm;
 
-const kickDrum = new Tone.MembraneSynth({
-  volume: 1,
+const kickDrumSampler = new Tone.Sampler({
+  A1: kickMp3,
 }).toDestination();
 
-const lowPass = new Tone.Filter({
-  frequency: 8000,
+const snareDrumSampler = new Tone.Sampler({
+  A1: snareMp3,
 }).toDestination();
 
-const snareDrum = new Tone.NoiseSynth({
-  volume: 5,
-  noise: {
-    type: "white",
-    playbackRate: 3,
-  },
-  envelope: {
-    attack: 0.001,
-    decay: 0.2,
-    sustain: 0.15,
-    release: 0.03,
-  },
-}).connect(lowPass);
-
-// filtering the hi-hats a bit
-// to make them sound nicer
-const lowPass2 = new Tone.Filter({
-  frequency: 14000,
+const openHiHatSampler = new Tone.Sampler({
+  A1: openHiHatMp3,
 }).toDestination();
 
-// we can make our own hi hats with
-// the noise synth and a sharp filter envelope
-const openHiHat = new Tone.NoiseSynth({
-  volume: 10,
-  envelope: {
-    attack: 0.01,
-    decay: 0.3,
-  },
-}).connect(lowPass2);
-
-const closedHiHat = new Tone.NoiseSynth({
-  volume: 10,
-  envelope: {
-    attack: 0.01,
-    decay: 0.15,
-  },
-}).connect(lowPass);
+const closedHiHatSampler = new Tone.Sampler({
+  A1: closedHiHatMp3,
+}).toDestination();
 
 let currentBeat = 0;
 
@@ -97,20 +72,16 @@ Tone.Transport.scheduleRepeat((time) => {
     const isActive = bg[currentBeat];
     if (isActive) {
       if (bgIdx === 3) {
-        // kick drum
-        kickDrum.triggerAttackRelease("C2", "16n", time);
+        kickDrumSampler.triggerAttackRelease("A1", "16n", time);
       }
       if (bgIdx === 2) {
-        // snare drum
-        snareDrum.triggerAttackRelease("16n", time);
+        snareDrumSampler.triggerAttackRelease("A1", "16n", time);
       }
       if (bgIdx === 1) {
-        // hihat
-        closedHiHat.triggerAttackRelease("16n", time);
+        closedHiHatSampler.triggerAttackRelease("A1", "16n", time);
       }
       if (bgIdx === 0) {
-        // hihat
-        openHiHat.triggerAttackRelease("16n", time);
+        openHiHatSampler.triggerAttackRelease("A1", "16n", time);
       }
     }
   });

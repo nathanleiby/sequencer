@@ -17,15 +17,15 @@
 - [ ] Across session training tools
   - [ ] save training history
     - [ ] how fast, how accurate
-- [ ] support for Drumkit sounds
+- [...] support for Drumkit sounds
   - p0
-    - [ ] kick
-    - [ ] snare
-    - [ ] hi hat
+    - [x] kick
+    - [x] snare
+    - [x] hi hat
   - p1
     - [ ] crash
     - [ ] ride
-    - [ ] open hihat
+    - [x] open hihat
   - p 2
     - [ ] tom 1,2,3
     - [ ] ride (bell)
