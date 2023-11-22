@@ -1,4 +1,5 @@
 import { Button, Group, Space, Text, useMantineTheme } from "@mantine/core";
+import { useHotkeys } from "@mantine/hooks";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { Layer, Line, Rect, Stage } from "react-konva";
@@ -55,10 +56,30 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
   const theme = useMantineTheme();
   const beatColors = theme.colors.orange.slice(3, 7);
 
+  const [userNotes, setUserNotes] = useState<Tone.Unit.Time[]>([]);
+
   const [playing, setPlaying] = useState(false);
   const [transportPos, setTransportPos] = useState<Tone.Unit.Time>(0);
   const [currentBeatUI, setCurrentBeatUI] = useState(-1);
   const [refreshPlz, setRefreshPlz] = useState(false);
+
+  useHotkeys([
+    [
+      "a",
+      () => {
+        // limit to 10 user notes
+        if (userNotes.length >= 10) {
+          userNotes.pop();
+        }
+        setUserNotes([Tone.Transport.position, ...userNotes]);
+
+        // console.log({ transportPos: Tone.Transport.position.toString() });
+      },
+    ],
+    ["s", () => console.log("Trigger search")],
+    ["d", () => console.log("Rick roll")],
+    ["f", () => console.log("Rick roll")],
+  ]);
 
   const setVoices = (v: Voices) => {
     voices = v;
@@ -135,7 +156,6 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
               fillLinearGradientColorStops={[0, "red", 1, "yellow"]}
             />
           ))}
-
           {_.range(voices.length + 1).map((n) => (
             <Line
               key={n}
@@ -155,32 +175,49 @@ export default function BeatGrid2D(props: BeatGrid2DProps) {
               fillLinearGradientColorStops={[0, "red", 1, "yellow"]}
             />
           ))}
-
           {voices.map((beats, bgIdx) => {
             return beats.map((beat, bIdx) => {
               return (
-                <>
-                  <Rect
-                    key={`${bgIdx}-${bIdx}`}
-                    x={(xOffset + bIdx) * beatWidth}
-                    y={(yOffset + bgIdx * ySpacing) * beatWidth}
-                    width={beatWidth}
-                    height={beatWidth}
-                    fill={
-                      beat ? beatColors[bgIdx % beatColors.length] : undefined
-                    }
-                    stroke={bIdx === currentBeatUI ? "green" : "black"}
-                    onClick={() => {
-                      const newVoices = _.cloneDeep(voices);
-                      newVoices[bgIdx][bIdx] = !newVoices[bgIdx][bIdx];
-                      setVoices(newVoices);
-                    }}
-                  />
-                </>
+                <Rect
+                  key={`${bgIdx}-${bIdx}`}
+                  x={(xOffset + bIdx) * beatWidth}
+                  y={(yOffset + bgIdx * ySpacing) * beatWidth}
+                  width={beatWidth}
+                  height={beatWidth}
+                  fill={
+                    beat ? beatColors[bgIdx % beatColors.length] : undefined
+                  }
+                  stroke={bIdx === currentBeatUI ? "green" : "black"}
+                  onClick={() => {
+                    const newVoices = _.cloneDeep(voices);
+                    newVoices[bgIdx][bIdx] = !newVoices[bgIdx][bIdx];
+                    setVoices(newVoices);
+                  }}
+                />
               );
             });
           })}
 
+          {/* User played notes */}
+          {userNotes.map((note, noteIdx) => {
+            const bgIdx = 0;
+            // https://github.com/Tonejs/Tone.js/wiki/Time
+            const [, quarterNote, sixthteenthNote] = note
+              .toString()
+              .split(":")
+              .map(Number);
+            return (
+              <Rect
+                key={`${noteIdx}`}
+                x={(xOffset + quarterNote * 4 + sixthteenthNote) * beatWidth}
+                y={(yOffset + bgIdx * ySpacing) * beatWidth}
+                width={noteIdx === 0 ? 4 : 2}
+                height={beatWidth}
+                fill={noteIdx === 0 ? "lime" : "blue"}
+                stroke={undefined}
+              />
+            );
+          })}
           {/* position */}
           <Line
             x={xOffset * beatWidth}
